@@ -9,6 +9,7 @@ channels:
 dependencies:
   - bcftools=1.8
   - bwa=0.7.17
+  - expansionhunter=2.0.8
   - fastqc=0.11.7
   - freebayes=1.2.0
   - gatk4=4.0.6.0
