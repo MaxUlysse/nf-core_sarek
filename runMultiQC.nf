@@ -36,14 +36,14 @@ kate: syntax groovy; space-indent on; indent-width 2;
 if (params.help) exit 0, helpMessage()
 if (!SarekUtils.isAllowedParams(params)) exit 1, "params unknown, see --help for more information"
 if (!checkUppmaxProject()) exit 1, "No UPPMAX project ID found! Use --project <UPPMAX Project ID>"
+if (params.verbose) SarekUtils.verbose()
 
 // Check for awsbatch profile configuration
 // make sure queue is defined
 if (workflow.profile == 'awsbatch') {
-    if(!params.awsqueue) exit 1, "Provide the job queue for aws batch!"
+    if (!params.awsqueue) exit 1, "Provide the job queue for aws batch!"
 }
 
-directoryMap = SarekUtils.defineDirectoryMap(params.outDir)
 /*
 ================================================================================
 =                               P R O C E S S E S                              =
@@ -53,10 +53,10 @@ directoryMap = SarekUtils.defineDirectoryMap(params.outDir)
 startMessage()
 
 process GetVersionAll {
-  publishDir directoryMap.multiQC, mode: params.publishDirMode
+  publishDir "${params.outDir}/Reports/MultiQC", mode: params.publishDirMode
 
   input:
-    file(versions) from Channel.fromPath("${directoryMap.version}/*").collect().ifEmpty(file ("empty"))
+    file(versions) from Channel.fromPath("${params.outDir}/Reports/ToolsVersion/*").collect().ifEmpty(null)
 
   output:
     file ("tool_versions_mqc.yaml") into versionsForMultiQC
@@ -71,6 +71,7 @@ process GetVersionAll {
   configureStrelkaGermlineWorkflow.py --version > v_strelka.txt 2>&1 || true
   echo "${workflow.manifest.version}" &> v_sarek.txt 2>&1 || true
   echo "${workflow.nextflow.version}" &> v_nextflow.txt 2>&1 || true
+  echo "SNPEFF version"\$(snpEff -h 2>&1) > v_snpeff.txt
   fastqc -v > v_fastqc.txt 2>&1 || true
   freebayes --version > v_freebayes.txt 2>&1 || true
   gatk ApplyBQSR --help 2>&1 | grep Version: > v_gatk.txt 2>&1 || true
@@ -78,29 +79,27 @@ process GetVersionAll {
   qualimap --version &> v_qualimap.txt 2>&1 || true
   samtools --version &> v_samtools.txt 2>&1 || true
   vcftools --version &> v_vcftools.txt 2>&1 || true
+  vep --help &> v_vep.txt 2>&1 || true
 
   scrape_tool_versions.py &> tool_versions_mqc.yaml
   """
 }
 
-if (params.verbose && !params.noReports) versionsForMultiQC = versionsForMultiQC.view {
-  "MultiQC tools version:\n\
-  File  : [${it.fileName}]"
-}
+versionsForMultiQC = versionsForMultiQC.dump(tag:'Versions')
 
 reportsForMultiQC = Channel.empty()
   .mix(
-    Channel.fromPath("${directoryMap.bamQC}/*", type: 'dir'),
-    Channel.fromPath("${directoryMap.bcftoolsStats}/*"),
-    Channel.fromPath("${directoryMap.fastQC}/*/*"),
-    Channel.fromPath("${directoryMap.markDuplicatesQC}/*"),
-    Channel.fromPath("${directoryMap.samtoolsStats}/*"),
-    Channel.fromPath("${directoryMap.snpeffReports}/*"),
-    Channel.fromPath("${directoryMap.vcftools}/*"),
+    Channel.fromPath("${params.outDir}/Reports/bamQC/*", type: 'dir'),
+    Channel.fromPath("${params.outDir}/Reports/BCFToolsStats/*"),
+    Channel.fromPath("${params.outDir}/Reports/FastQC/*/*"),
+    Channel.fromPath("${params.outDir}/Reports/MarkDuplicates/*"),
+    Channel.fromPath("${params.outDir}/Reports/SamToolsStats/*"),
+    Channel.fromPath("${params.outDir}/Annotation/*/snpEff/*.csv"),
+    Channel.fromPath("${params.outDir}/Reports/VCFTools/*"),
   ).collect()
 
 process RunMultiQC {
-  publishDir directoryMap.multiQC, mode: params.publishDirMode
+  publishDir "${params.outDir}/Reports/MultiQC", mode: params.publishDirMode
 
   input:
     file (multiqcConfig) from createMultiQCconfig()
@@ -118,11 +117,7 @@ process RunMultiQC {
   """
 }
 
-if (params.verbose) multiQCReport = multiQCReport.view {
-  "MultiQC report:\n\
-  File  : [${it[0].fileName}]\n\
-  Dir   : [${it[1].fileName}]"
-}
+multiQCReport.dump(tag:'MultiQC')
 
 /*
 ================================================================================
@@ -170,8 +165,6 @@ def helpMessage() {
   log.info "       nextflow run runMultiQC.nf"
   log.info "    --help"
   log.info "       you're reading it"
-  log.info "    --verbose"
-  log.info "       Adds more verbosity to workflow"
 }
 
 def minimalInformationMessage() {
