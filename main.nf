@@ -1011,10 +1011,11 @@ bamRecal = bamRecal.dump(tag:'BAM')
 
 // Here we have a recalibrated bam set
 // The TSV file is formatted like: "idPatient status idSample bamFile baiFile"
-// Manta will be run in Germline mode, or in Tumor mode depending on status
-// HaplotypeCaller, TIDDIT and Strelka will be run for Normal and Tumor samples
+// Manta and Octopus will be run in Germline mode, or in Tumor mode depending on status
+// HaplotypeCaller, Strelka and TIDDIT will be run for Normal and Tumor samples
+// /!\ These tools are not meant to be used that way, but could still be interesting to have such results
 
-(bamMantaSingle, bamStrelkaSingle, bamTIDDIT, bamRecalAll, bamRecalAllTemp) = bamRecal.into(5)
+(bamMantaSingle, bamStrelkaSingle, bamOctopusSingle, bamTIDDIT, bamRecalAll, bamRecalAllTemp) = bamRecal.into(6)
 
 // To speed Variant Callers up we are chopping the reference into smaller pieces
 // Do variant calling by this intervals, and re-merge the VCFs
@@ -1198,6 +1199,42 @@ process MantaSingle {
 
 vcfMantaSingle = vcfMantaSingle.dump(tag:'Single Manta')
 
+// STEP OCTOPUS.1 - SINGLE MODE
+
+process OctopusSingle {
+    label 'cpus_max'
+    label 'memory_max'
+
+    tag {idSample}
+
+    publishDir "${params.outdir}/VariantCalling/${idSample}/Octopus", mode: params.publishDirMode
+
+    input:
+        set idPatient, idSample, file(bam), file(bai) from bamOctopusSingle
+        file(fasta) from ch_fasta
+        file(fastaFai) from ch_fastaFai
+        file(targetBED) from ch_targetBED
+
+    output:
+        set val("Octopus"), idPatient, idSample, file("*.vcf.gz"), file("*.vcf.gz.tbi") into vcfOctopusSingle
+
+    when: 'octopus' in tools
+
+    script:
+    options = params.targetBED ? "--regions-file ${targetBED}" : ""
+    status = statusMap[idPatient, idSample]
+    mode = status == 0 ? "" : "-C cancer"
+    """
+    octopus \
+        -R ${fasta} \
+        -I ${bam} \
+        ${options} \
+        ${mode}
+    """
+}
+
+vcfOctopusSingle = vcfOctopusSingle.dump(tag:'Octopus - Single Mode')
+
 // STEP TIDDIT
 
 process TIDDIT {
@@ -1263,8 +1300,8 @@ pairBam = bamNormal.cross(bamTumor).map {
 
 pairBam = pairBam.dump(tag:'BAM Somatic Pair')
 
-// Manta and Strelka
-(pairBamManta, pairBamStrelka, pairBamStrelkaBP, pairBamCalculateContamination, pairBamFilterMutect2, pairBam) = pairBam.into(6)
+// Manta, Mutect2, Octopus and Strelka
+(pairBamManta, pairBamOctopus, pairBamStrelka, pairBamStrelkaBP, pairBamCalculateContamination, pairBamFilterMutect2, pairBam) = pairBam.into(7)
 
 intervalPairBam = pairBam.spread(bedIntervals)
 
@@ -1728,6 +1765,42 @@ process StrelkaBP {
 }
 
 vcfStrelkaBP = vcfStrelkaBP.dump(tag:'Strelka BP')
+
+
+// STEP OCTOPUS.2 - SOMATIC PAIR
+
+process Octopus {
+    label 'cpus_max'
+    label 'memory_max'
+
+    tag {idSampleTumor + "_vs_" + idSampleNormal}
+
+    publishDir "${params.outdir}/VariantCalling/${idSampleTumor}_vs_${idSampleNormal}/Octopus", mode: params.publishDirMode
+
+    input:
+        set idPatient, idSampleNormal, file(bamNormal), file(baiNormal), idSampleTumor, file(bamTumor), file(baiTumor) from pairBamOctopus
+        file(dict) from ch_dict
+        file(fasta) from ch_fasta
+        file(fastaFai) from ch_fastaFai
+        file(targetBED) from ch_targetBED
+
+    output:
+        set val("Octopus"), idPatient, val("${idSampleTumor}_vs_${idSampleNormal}"), file("*.vcf.gz"), file("*.vcf.gz.tbi") into vcfOctopus
+
+    when: 'octopus' in tools
+
+    script:
+    options = params.targetBED ? "--regions-file ${targetBED}" : ""
+    """
+    octopus \
+        -R ${fasta} \
+        -I ${bamNormal} ${bamTumor} \
+        ${options} \
+        -N ${idSampleNormal}
+    """
+}
+
+vcfOctopus = vcfOctopus.dump(tag:'Octopus')
 
 // STEP ASCAT.1 - ALLELECOUNTER
 
@@ -2658,6 +2731,7 @@ def defineToolList() {
         'merge',
         'mpileup',
         'mutect2',
+        'octopus',
         'snpeff',
         'strelka',
         'tiddit',

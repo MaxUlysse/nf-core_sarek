@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Added`
 
 - [#46](https://github.com/nf-core/sarek/pull/46) - Add location to abstacts
+- [#XXX](https://github.com/nf-core/sarek/pull/XXX) - Add `Octopus`
 
 ### `Changed`
 

@@ -19,6 +19,7 @@ dependencies:
   - htslib=1.9
   - manta=1.6.0
   - multiqc=1.7
+  - octopus=0.5.2b
   - qualimap=2.2.2c
   - samtools=1.9
   - snpeff=4.3.1t

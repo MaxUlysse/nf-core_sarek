@@ -26,6 +26,7 @@ For annotation, the main container can be used, but the cache has to be download
 - Contain **[HTSlib](https://github.com/samtools/htslib)** 1.9
 - Contain **[Manta](https://github.com/Illumina/manta)** 1.6.0
 - Contain **[MultiQC](https://github.com/ewels/MultiQC/)** 1.7
+- Contain **[Octopus](https://github.com/luntergroup/octopus)** 0.5.2b
 - Contain **[Qualimap](http://qualimap.bioinfo.cipf.es)** 2.2.2c
 - Contain **[samtools](https://github.com/samtools/samtools)** 1.9
 - Contain **[snpEff](http://snpeff.sourceforge.net/)** 4.3.1t
