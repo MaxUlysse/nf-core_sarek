@@ -2655,15 +2655,16 @@ vcfConcatenatedForJointCalling.branch{
 
 finalVcfForJointCalling = vcfForJointCalling.haplotypecaller.map{
     variantCaller, idPatient, idSample, gvcf, gvcfIndex ->
-    [gvcf]
+    [gvcf, gvcfIndex]
 }.collect()
 
 process GenomicsDBImport {
     input:
-        file(gvcf) from finalVcfForJointCalling
+        set file(gvcf), file(gvcfIndex) from finalVcfForJointCalling
+        file(intervals) from ch_intervals
 
     output:
-        file("") into genomicsDBImportOut
+        file("DB") into genomicsDBImportOut
 
     when: 'haplotypecaller' in tools && params.joint_calling
 
@@ -2673,6 +2674,7 @@ process GenomicsDBImport {
     gatk --java-options -Xmx${task.memory.toGiga()}g \
         GenomicsDBImport \
         ${files} \
+        -L ${intervals} \
         --genomicsdb-workspace-path DB
     """
 }
