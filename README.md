@@ -1,6 +1,7 @@
 # [![Sarek](docs/images/nf-core_sarek_logo.png "Sarek")](https://nf-co.re/sarek)
 
 > **An open-source analysis pipeline to detect germline or somatic variants from whole genome or targeted sequencing**
+
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-brightgreen.svg)](https://www.nextflow.io/)
 [![nf-core](https://img.shields.io/badge/nf--core-pipeline-brightgreen.svg)](https://nf-co.re/)
 [![DOI](https://zenodo.org/badge/184289291.svg)](https://zenodo.org/badge/latestdoi/184289291)
@@ -68,7 +69,9 @@ The nf-core/sarek pipeline comes with documentation about the pipeline, found in
     * [Input files documentation](docs/input.md)
     * [Documentation about containers](docs/containers.md)
 4. [Output and how to interpret the results](docs/output.md)
+    * [Extra documentation on variant calling](docs/variant_calling.md)
     * [Complementary information about ASCAT](docs/ascat.md)
+    * [Complementary information about Sentieon](docs/sentieon.md)
     * [Extra documentation on annotation](docs/annotation.md)
 5. [Troubleshooting](https://nf-co.re/usage/troubleshooting)
 
