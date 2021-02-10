@@ -5,8 +5,8 @@ no-duplicate-header:
     siblings_only: true
 no-inline-html:
     allowed_elements:
-        - details
         - img
-        - kbd
         - p
+        - kbd
+        - details
         - summary
