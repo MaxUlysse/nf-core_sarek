@@ -1,10 +1,7 @@
 ---
 name: Bug report
 about: Report something that is broken or incorrect
-title: "[BUG]"
 labels: bug
-assignees: MaxUlysse
-
 ---
 
 <!--
@@ -60,7 +57,7 @@ Have you provided the following extra information/files:
 
 - Engine: <!-- [e.g. Conda, Docker, Singularity, Podman, Shifter or Charliecloud] -->
 - version: <!-- [e.g. 1.0.0] -->
-- Image tag: <!-- [e.g. nfcore/sarek:2.7] -->
+- Image tag: <!-- [e.g. nfcore/sarek:1.0.0] -->
 
 ## Additional context
 
