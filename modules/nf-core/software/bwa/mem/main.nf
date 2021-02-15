@@ -39,7 +39,7 @@ process BWA_MEM {
         -t $task.cpus \\
         \$INDEX \\
         $reads \\
-        | samtools view $options.args2 -@ $task.cpus -bhS -o ${prefix}.bam -
+        | samtools sort $options.args2 --threads $task.cpus -o ${prefix}.bam -
 
     echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${software}.version.txt
     """

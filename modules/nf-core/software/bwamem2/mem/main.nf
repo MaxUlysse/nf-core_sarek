@@ -39,7 +39,7 @@ process BWAMEM2_MEM {
         -t $task.cpus \\
         \$INDEX \\
         $reads \\
-        | samtools view $options.args2 -@ $task.cpus -bhS -o ${prefix}.bam -
+        | samtools sort $options.args2 --threads $task.cpus -o ${prefix}.bam -
 
     echo \$(bwa-mem2 version 2>&1) > ${software}.version.txt
     """
