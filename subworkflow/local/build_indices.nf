@@ -21,7 +21,7 @@ params.tabix_pon_options               = [:]
 
 include { BUILD_INTERVALS }                            from '../../modules/local/build_intervals.nf'                          addParams(options: params.build_intervals_options)
 include { BWA_INDEX as BWAMEM1_INDEX }                 from '../../modules/nf-core/software/bwa/index/main.nf'                addParams(options: params.bwa_index_options)
-include { BWAMEM2_INDEX }                              from '../../modules/nf-core/software/bwamem2_index.nf'                 addParams(options: params.bwamem2_index_options)
+include { BWAMEM2_INDEX }                              from '../../modules/nf-core/software/bwamem2/index/main.nf'            addParams(options: params.bwamem2_index_options)
 include { CREATE_INTERVALS_BED }                       from '../../modules/local/create_intervals_bed.nf'                     addParams(options: params.create_intervals_bed_options)
 include { GATK_CREATESEQUENCEDICTIONARY as GATK_DICT } from '../../modules/nf-core/software/gatk/createsequencedictionary.nf' addParams(options: params.gatk_dict_options)
 include { HTSLIB_TABIX as TABIX_DBSNP }                from '../../modules/nf-core/software/htslib_tabix'                     addParams(options: params.tabix_dbsnp_options)

@@ -11,7 +11,7 @@ process BWA_INDEX {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-    conda (params.enable_conda ? "bioconda::bwa=0.7.17" : null)
+    conda (params.enable_conda ? "bioconda::bwa=0.7.17=hed695b0_7" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7"
     } else {
@@ -22,13 +22,14 @@ process BWA_INDEX {
     path fasta
 
     output:
-    path "${fasta}.*"   , emit: index
+    path "bwa"          , emit: index
     path "*.version.txt", emit: version
 
     script:
     def software = getSoftwareName(task.process)
     """
-    bwa index $options.args $fasta
+    mkdir bwa
+    bwa index $options.args $fasta -p bwa/${fasta.baseName}
     echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${software}.version.txt
     """
 }
