@@ -22,14 +22,14 @@ process BWAMEM2_INDEX {
     path fasta
 
     output:
-    path "bwamem2"      , emit: index
-    path "*.version.txt", emit: version
+    tuple val("bwamem2/$fasta.baseName"), path("bwamem2"), emit: index
+    path "*.version.txt"                                 , emit: version
 
     script:
     def software = getSoftwareName(task.process)
     """
     mkdir bwamem2
-    bwa-mem2 index $options.args $fasta -p bwamem2/${fasta}
+    bwa-mem2 index $options.args $fasta -p bwamem2/${fasta.baseName}
     echo \$(bwa-mem2 version 2>&1) > ${software}.version.txt
     """
 }
